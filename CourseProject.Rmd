@@ -1,8 +1,8 @@
 ---
-title: "Practical Machine Learning Course Project: HAR Exercise Quality Prediction"
+title: 'Practical Machine Learning Course Project: HAR Exercise Quality Prediction'
 author: "Scott Wallace"
 date: "September 21, 2014"
-output: html_document
+output: pdf_document
 ---
 
 # Executive Summary

@@ -1,0 +1,121 @@
+---
+title: "Practical Machine Learning Course Project: HAR Exercise Quality Prediction"
+author: "Scott Wallace"
+date: "September 21, 2014"
+output: html_document
+---
+
+# Executive Summary
+The following study was performed using the Human Activity Recognition (HAR) Weight Lifting Exercises (WLE) data set. This study uses the WLE data set to create a machine learning model which will predict the quality of exercises as categorized with the `classe` variable. Using PCA and a random forest classification model we attain an approximate **97%** prediction accuracy.
+
+# Exploratory Data Analysis
+First, we download the data from the web urls provided and load into `training` and `testing` data frames. Once downloaded we analyze the data using `head` and `summary` functions. Note: the output of `head` and `summary` are left out for the sake of brevity.
+```{r echo=FALSE}
+#Load required packages
+library(caret)
+
+#Remove all environment variables
+rm(list = setdiff(ls(), lsf.str()))
+
+#Download training data
+trainingUrl<-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+temp <- tempfile()
+download.file(trainingUrl,temp, method="curl")
+
+if(!exists("training")){
+  training <- read.csv(temp, header=TRUE, sep=",", na.strings=c("NA", "#DIV/0!"))
+}
+
+unlink(temp)
+
+#Download testing problem data
+testingUrl<-"https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv"
+temp <- tempfile()
+download.file(testingUrl,temp, method="curl")
+
+if(!exists("testing")){
+  testing <- read.csv(temp, header=TRUE, sep=",", na.strings=c("NA", "#DIV/0!"))
+}
+
+unlink(temp)
+
+#head(training)
+#summary(training)
+```
+
+# Preprocessing
+The first thing we notice when looking at the data is that there are some variables that should have no bearing on our model's outcome. Looking at the data set the `X`, `user_name` and timestamp columns should not affect our outcome, so we'll remove them upfront. We also notice that our test cases include many columns with missing values. We drop those columns from both the training and testing data sets.
+```{r}
+# Drop unnecessary columns, including constants
+drops <- c("X","user_name","raw_timestamp_part_1", "raw_timestamp_part_2", "cvtd_timestamp")
+training<-training[,!(names(training) %in% drops)]
+testing<-testing[,!(names(testing) %in% drops)]
+
+#Remove columns that have values of NA for all rows in testing set
+dropIndex<-NULL
+
+cols<-ncol(training)-1
+
+for(i in 1:cols) {
+  nas<-sum(is.na(testing[,i]))
+  if(nas==20) {
+    dropIndex<-append(dropIndex, i)
+  }
+}
+
+testing<-testing[,-dropIndex]
+training<-training[,-dropIndex]
+
+# Convert columns to numeric 
+cols<-ncol(training)-1
+for(i in 1:cols) {
+  training[,i] <- as.numeric(training[,i])
+}
+
+cols<-ncol(testing)-1
+for(i in 1:cols) {
+ testing[,i] <- as.numeric(testing[,i])
+}
+``` 
+
+# Training and Testing Sets
+Within the training data we separate data out into training and test sets. We'll use 75% of the training set to create our model and then perform cross validation to test the accuracy of our model using the remaining 25%.
+```{r}
+#Define the outcome, y, which is classe in the training set
+y<-which(names(training) == "classe")
+
+inTrain = createDataPartition(training$classe, p = 0.75, list=FALSE)
+data_train = training[inTrain,]
+data_test = training[-inTrain,]
+```
+
+# PCA
+To reduce correlation between variables we apply Principal Component Analysis (PCA) to our training and testing data sets using a 90% threshold of variance to be retained by PCA.
+```{r}
+preProc<- preProcess(data_train[,-y], outcome=classe, method="pca", threshold=0.9)
+trainPC<-predict(preProc, data_train[,-y])
+testPC<-predict(preProc, data_test[,-y])
+```
+
+# Model Fitting
+Using the PCA data we train a random forest classification model using the out-of-bag error estimate training control.
+```{r echo=FALSE}
+fitControl = trainControl(method = "oob")
+modelFit<- train(data_train$classe ~ .,method="rf",ntree=200,trControl=fitControl, data=trainPC)
+```
+
+# Cross Validation
+We then check the performance of the model using cross validation and see that we are getting **97%** accuracy with this model. The expected out of sample error in this case is approximately **3%**.
+```{r}
+confusionMatrix(data_test$classe,predict(modelFit, testPC))
+```
+
+# Classification of Test Cases
+Finally, we can use this model to predict the quality values of the downloaded testing data. To do this we need to first apply the same PCA used in our training set. We then run the predict function using our model against the testing set.
+```{r}
+testProblemsPC<-predict(preProc, testing[,-y])
+predictions<-predict(modelFit, testProblemsPC)
+problem_id<-testing$problem_id
+results<-data.frame(problem_id,predictions)
+print(results)
+```

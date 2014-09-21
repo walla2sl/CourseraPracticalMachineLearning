@@ -137,33 +137,33 @@ testPC&lt;-predict(preProc, data_test[,-y])</code></pre>
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1382    4    4    4    1
-##          B   13  925   10    1    0
-##          C    3    2  841    9    0
-##          D    1    0   28  773    2
-##          E    0    0    2    6  893
+##          A 1386    1    2    5    1
+##          B    9  922   16    1    1
+##          C    1   12  832   10    0
+##          D    0    0   34  770    0
+##          E    0    1    2    4  894
 ## 
 ## Overall Statistics
 ##                                         
-##                Accuracy : 0.982         
-##                  95% CI : (0.977, 0.985)
+##                Accuracy : 0.98          
+##                  95% CI : (0.975, 0.983)
 ##     No Information Rate : 0.285         
-##     P-Value [Acc &gt; NIR] : &lt;2e-16        
+##     P-Value [Acc &gt; NIR] : &lt; 2e-16       
 ##                                         
-##                   Kappa : 0.977         
-##  Mcnemar's Test P-Value : NA            
+##                   Kappa : 0.974         
+##  Mcnemar's Test P-Value : 0.000234      
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity             0.988    0.994    0.950    0.975    0.997
-## Specificity             0.996    0.994    0.997    0.992    0.998
-## Pos Pred Value          0.991    0.975    0.984    0.961    0.991
-## Neg Pred Value          0.995    0.998    0.989    0.995    0.999
-## Prevalence              0.285    0.190    0.180    0.162    0.183
-## Detection Rate          0.282    0.189    0.171    0.158    0.182
+## Sensitivity             0.993    0.985    0.939    0.975    0.998
+## Specificity             0.997    0.993    0.994    0.992    0.998
+## Pos Pred Value          0.994    0.972    0.973    0.958    0.992
+## Neg Pred Value          0.997    0.996    0.987    0.995    1.000
+## Prevalence              0.285    0.191    0.181    0.161    0.183
+## Detection Rate          0.283    0.188    0.170    0.157    0.182
 ## Detection Prevalence    0.284    0.194    0.174    0.164    0.184
-## Balanced Accuracy       0.992    0.994    0.973    0.984    0.997</code></pre>
+## Balanced Accuracy       0.995    0.989    0.967    0.983    0.998</code></pre>
 </div>
 <div id="classification-of-test-cases" class="section level1">
 <h1>Classification of Test Cases</h1>
@@ -176,10 +176,10 @@ print(results)</code></pre>
 <pre><code>##    problem_id predictions
 ## 1           1           B
 ## 2           2           A
-## 3           3           C
+## 3           3           B
 ## 4           4           A
 ## 5           5           A
-## 6           6           E
+## 6           6           B
 ## 7           7           D
 ## 8           8           B
 ## 9           9           A
@@ -194,6 +194,18 @@ print(results)</code></pre>
 ## 18         18           B
 ## 19         19           B
 ## 20         20           B</code></pre>
+</div>
+<div id="submission" class="section level1">
+<h1>Submission</h1>
+<pre class="r"><code>pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(predictions)</code></pre>
 </div>
 
 
